@@ -1,0 +1,10 @@
+# .gitignore
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.DS_Store
+endpoints.md
+*.txt
+*.log
