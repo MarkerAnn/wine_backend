@@ -1,7 +1,7 @@
-# app/main.py
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
+
 
 from app.api.endpoints import wines
 

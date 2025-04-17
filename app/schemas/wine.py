@@ -1,38 +1,35 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from decimal import Decimal
+from datetime import datetime
+
 
 class WineBase(BaseModel):
-    """Base schema with common wine attributes"""
     title: str
     description: str
-    price: Decimal
-    country: str
-    type: str
-    abv: Decimal
-    style: str
+    points: int
+    price: Optional[Decimal]
+    country: Optional[str]
+    province: Optional[str]
+    region_1: Optional[str]
+    region_2: Optional[str]
+    designation: Optional[str]
+    taster_name: Optional[str]
+    taster_twitter_handle: Optional[str]
+    variety: Optional[str]
+    winery: Optional[str]
+
 
 class Wine(WineBase):
-    """Complete wine schema with all attributes"""
     id: int
-    capacity: Optional[Decimal] = None
-    grape: str
-    secondary_grape_varieties: Optional[str] = None
-    closure: Optional[str] = None
-    unit: Optional[Decimal] = None
-    characteristics: Optional[str] = None
-    per_unit: Optional[str] = None
-    region: Optional[str] = None
-    vintage: Optional[int] = None
-    appellation: Optional[str] = None
-    currency: str
+    created_at: Optional[datetime]
+    source: Optional[str]
 
     class Config:
-        """Configure Pydantic to handle SQLAlchemy models"""
         orm_mode = True
 
+
 class WineList(BaseModel):
-    """Schema for a paginated list of wines"""
     items: List[Wine]
     total: int
     page: int
