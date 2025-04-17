@@ -1,7 +1,7 @@
+import math
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
-import math
 
 from app.db.database import get_db
 from app.models.wine import Wine
@@ -59,4 +59,3 @@ def get_wines(
     pages = math.ceil(total / size)
 
     return {"items": wines, "total": total, "page": page, "size": size, "pages": pages}
-

@@ -9,14 +9,18 @@ disable=
     C0115,  # Missing class docstring
     C0116,  # Missing function or method docstring
     R0903,  # Too few public methods (good for small classes)
+    E1102,  # not-callable (för SQLAlchemy func.count() etc.)
+    C0103,  # invalid-name (för SQLAlchemy-genererade namn i queries)
+    R0913,  # too-many-arguments (för SQLAlchemy modeller med många kolumner)
+    R0914,  # too-many-locals (vanligt i komplexa queries)
 
 [FORMAT]
 max-line-length=88  # Matchar 'Black'
 indent-string='    '  # Fyra mellanslag
-good-names=i,j,k,ex,Run,_,id
+good-names=i,j,k,ex,Run,_,id,db
 
 [DESIGN]
-max-args=5  # Fler än så kan bryta SRP
+max-args=5  # More then 5 arguments is a sign of bad design
 max-locals=15
 max-returns=5
 max-branches=10
@@ -36,6 +40,8 @@ class-rgx=[A-Z][a-zA-Z0-9]+$
 
 [TYPECHECK]
 ignored-modules=
+# Ignore classes in SQLAlchemy, PyLint often has trouble with them
+ignored-classes=scoped_session,sessionmaker,Session,Query,Engine
 
 [REPORTS]
 output-format=colorized
