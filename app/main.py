@@ -19,7 +19,8 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    # allow_origins=origins,
+    allow_origins=["http://localhost:5173"],  # eller ["*"] för att tillåta alla
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,9 +28,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(wines.router, prefix="/api/wines", tags=["wines"])
-app.include_router(
-    stats.router, prefix="/api/stats", tags=["statistics"]
-)
+app.include_router(stats.router, prefix="/api/stats", tags=["statistics"])
 
 
 @app.get("/")
