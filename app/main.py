@@ -1,9 +1,8 @@
-import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 
-from app.api.endpoints import wines, stats  # Lägg till import för stats
+from app.api.endpoints import wines, stats, bucket_wines  # Lägg till import för stats
 
 # Create FastAPI application
 app = FastAPI(
@@ -29,6 +28,7 @@ app.add_middleware(
 # Include routers
 app.include_router(wines.router, prefix="/api/wines", tags=["wines"])
 app.include_router(stats.router, prefix="/api/stats", tags=["statistics"])
+app.include_router(bucket_wines.router, prefix="/api/wines/bucket", tags=["wines"])
 
 
 @app.get("/")

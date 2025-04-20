@@ -20,6 +20,7 @@ class CountryStats(BaseModel):
     """
 
     country: str
+    original_country: str
     avg_points: float
     count: int
     min_price: Optional[Decimal] = None
