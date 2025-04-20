@@ -1,7 +1,7 @@
-from pydantic import BaseModel
 from typing import Optional, List
 from decimal import Decimal
 from datetime import datetime
+from pydantic import BaseModel
 
 
 class WineBase(BaseModel):
@@ -25,8 +25,9 @@ class Wine(WineBase):
     created_at: Optional[datetime]
     source: Optional[str]
 
-    class Config:
-        orm_mode = True
+
+class MyModel(BaseModel):
+    model_config = {"from_attributes": True}
 
 
 class WineList(BaseModel):

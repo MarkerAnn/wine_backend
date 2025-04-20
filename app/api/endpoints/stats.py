@@ -101,7 +101,7 @@ async def get_countries_stats(
     return {"items": countries_data, "total_countries": len(countries_data)}
 
 
-@router.get("/stats/price-rating", response_model=PriceRatingResponse)
+@router.get("/price-rating", response_model=PriceRatingResponse)
 async def get_price_rating_data(
     country: Optional[str] = None,
     variety: Optional[str] = None,
@@ -122,7 +122,8 @@ async def get_price_rating_data(
     query = db.query(
         Wine.id, Wine.price, Wine.points, Wine.country, Wine.variety, Wine.winery
     ).filter(
-        Wine.price.isnot(None)
+        Wine.price.isnot(None),
+        Wine.country.isnot(None)
     )  # Only include wines with price
 
     # Apply filters if provided
