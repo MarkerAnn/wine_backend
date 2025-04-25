@@ -6,7 +6,7 @@ from app.schemas.country_stats import CountriesStatsList
 from app.services.country_stats_service import fetch_country_stats
 
 router = APIRouter(
-    prefix="/stats",
+    prefix="/api/stats",
     tags=["country-stats"],
 )
 

@@ -12,7 +12,6 @@ router = APIRouter(
 )
 
 
-
 @router.get("/", response_model=BucketWinesResponse)
 def get_wines_in_bucket(
     price_min: float = Query(..., description="Minimum price for the bucket"),

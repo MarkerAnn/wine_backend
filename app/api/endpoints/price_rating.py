@@ -15,7 +15,7 @@ from app.services.price_rating_services import (
 )
 
 router = APIRouter(
-    prefix="/stats",
+    prefix="/api/stats",
     tags=["price-rating"],
 )
 
