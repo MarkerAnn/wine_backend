@@ -11,7 +11,9 @@ from app.schemas.bucket_wines import (
     BucketWinesResponse,
 )
 
-
+# -------------------------------------------------------
+# Service to fetch wines in a specific price-rating bucket
+# -------------------------------------------------------
 def fetch_wines_in_bucket(
     db: Session,
     price_min: float,
@@ -73,8 +75,10 @@ def fetch_wines_in_bucket(
         wines=wine_list, pagination=pagination, total=total_count
     )
 
-
+# ----------------------------------------------------------
+# Private function to handle pagination and formatting
 # Define a private function to handle pagination and formatting ('_')
+# ---------------------------------------------------------
 def _process_pagination_and_format(
     wines: List[Wine], limit: int
 ) -> Tuple[List[WineInBucket], BucketWinesPagination]:

@@ -8,7 +8,9 @@ from app.models.wine import Wine
 from app.schemas.country_stats import CountryStats, CountriesStatsList, VarietyInfo
 from app.utils.country_mapping import get_geojson_country_name
 
-
+# -------------------------
+# Service to fetch country-level wine statistics
+# -------------------------
 def fetch_country_stats(db: Session, min_wines: int = 50) -> CountriesStatsList:
     """
     Fetch country-level wine statistics including top varieties.

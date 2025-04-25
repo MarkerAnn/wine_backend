@@ -6,7 +6,11 @@ from app.db.database import get_db
 from app.schemas.bucket_wines import BucketWinesResponse
 from app.services.bucket_wines_service import fetch_wines_in_bucket
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/api/wines/bucket",
+    tags=["bucket-wines"],
+)
+
 
 
 @router.get("/", response_model=BucketWinesResponse)

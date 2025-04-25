@@ -1,7 +1,7 @@
 from typing import Optional, List
 from decimal import Decimal
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class WineBase(BaseModel):
@@ -25,6 +25,9 @@ class Wine(WineBase):
     created_at: Optional[datetime]
     source: Optional[str]
 
+    # Config the model to work with ORM-objects
+    model_config = ConfigDict(from_attributes=True)
+
 
 class MyModel(BaseModel):
     model_config = {"from_attributes": True}
@@ -36,3 +39,5 @@ class WineList(BaseModel):
     page: int
     size: int
     pages: int
+
+    model_config = ConfigDict(from_attributes=True)
