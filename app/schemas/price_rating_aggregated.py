@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, Union, List
 from pydantic import BaseModel, Field
 
 
@@ -35,7 +35,7 @@ class AggregatedPriceRatingResponse(BaseModel):
 
     buckets: List[PriceRatingBucket]
     total_wines: int
-    bucket_size: dict = Field(
+    bucket_size: Dict[str, Union[float, int]] = Field(
         ..., description="Size of each bucket (e.g. {'price': 10, 'points': 1})"
     )
 
@@ -58,7 +58,11 @@ class HeatmapResponse(BaseModel):
     )
     x_categories: List[float] = Field(..., description="Price categories for x-axis")
     y_categories: List[int] = Field(..., description="Rating categories for y-axis")
-    bucket_map: dict = Field(..., description="Lookup map for original bucket data")
+    bucket_map: Dict[str, Dict[str, Union[float, int, List[WineExample]]]] = Field(
+        ..., description="Lookup map for original bucket data"
+    )
     max_count: int = Field(..., description="Maximum count value for color scaling")
     total_wines: int = Field(..., description="Total number of wines in the selection")
-    bucket_size: dict = Field(..., description="Size of each bucket")
+    bucket_size: Dict[str, Union[float, int]] = Field(
+        ..., description="Size of each bucket"
+    )
