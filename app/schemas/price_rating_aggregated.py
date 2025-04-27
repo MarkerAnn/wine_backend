@@ -13,6 +13,35 @@ class WineExample(BaseModel):
     winery: str = Field(..., description="Winery name")
 
 
+class VarietyCount(BaseModel):
+    """
+    Represents a variety and its count in a bucket
+    """
+
+    variety: str = Field(..., description="Variety/grape name")
+    count: int = Field(..., description="Number of wines of this variety")
+
+
+class BucketMapItem(BaseModel):
+    """
+    Detailed information about a specific price-point bucket for hover display
+    """
+
+    price_min: float = Field(..., description="Lower bound of price range")
+    price_max: float = Field(..., description="Upper bound of price range")
+    points_min: int = Field(..., description="Lower bound of rating range")
+    points_max: int = Field(..., description="Upper bound of rating range")
+    count: int = Field(..., description="Number of wines in this bucket")
+    avg_price: float = Field(..., description="Average price of wines in this bucket")
+    price_range: str = Field(..., description="Human-readable price range")
+    top_varieties: List[VarietyCount] = Field(
+        ..., description="Most common varieties in this bucket"
+    )
+    examples: List[WineExample] = Field(
+        default_factory=list, description="Example wines from this bucket"
+    )
+
+
 class PriceRatingBucket(BaseModel):
     """
     Represents an aggregated group of wines within a specific price and rating range
@@ -40,16 +69,6 @@ class AggregatedPriceRatingResponse(BaseModel):
     )
 
 
-class HeatmapPoint(BaseModel):
-    """Represents a single data point for the heatmap visualization"""
-
-    x_index: int = Field(..., description="X-axis index (for price)")
-    y_index: int = Field(..., description="Y-axis index (for rating)")
-    value: int = Field(..., description="Count value for heatmap intensity")
-    price_min: float = Field(..., description="Original price_min value")
-    points_min: int = Field(..., description="Original points_min value")
-
-
 class HeatmapResponse(BaseModel):
     """Response model for pre-formatted heatmap data"""
 
@@ -58,8 +77,9 @@ class HeatmapResponse(BaseModel):
     )
     x_categories: List[float] = Field(..., description="Price categories for x-axis")
     y_categories: List[int] = Field(..., description="Rating categories for y-axis")
-    bucket_map: Dict[str, Dict[str, Union[float, int, List[WineExample]]]] = Field(
-        ..., description="Lookup map for original bucket data"
+    bucket_map: Dict[str, BucketMapItem] = Field(
+        ...,
+        description="Lookup map for hover info with key format 'price_min-points_min'",
     )
     max_count: int = Field(..., description="Maximum count value for color scaling")
     total_wines: int = Field(..., description="Total number of wines in the selection")
