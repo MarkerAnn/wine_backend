@@ -1,34 +1,32 @@
+# app/db/database.py
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
-
-# Get the database URL from environment variable
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Create database engine
-engine = create_engine(DATABASE_URL)
+# Modifiera engine med större pool och längre timeout
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=20,  # Decrease pool_size to 20
+    max_overflow=20,  # Decrease max_overflow to 20
+    pool_timeout=60,  # Longer timeout
+    pool_pre_ping=True,  # Check if connection is alive before using it
+)
 
-# Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Create base class for models
 Base = declarative_base()
 
 
-# Dependency to get DB session
 def get_db():
-    """
-    Dependency function that yields a SQLAlchemy database session.
-    This ensures the database session is closed after the request is complete.
-    """
     db = SessionLocal()
     try:
-        print("Connecting to DB:", DATABASE_URL)
+        print("Connection opened")
         yield db
     finally:
+        # Se till att anslutningen stängs korrekt
+        print("Connection closing")
         db.close()

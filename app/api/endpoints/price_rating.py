@@ -68,6 +68,8 @@ def get_aggregated_price_rating(
     max_price: Optional[float] = Query(None, ge=0),
     min_points: Optional[int] = Query(None, ge=0),
     max_points: Optional[int] = Query(None, ge=0),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(100, ge=1, le=500, description="Buckets per page"),
     db: Session = Depends(get_db),
 ) -> AggregatedPriceRatingResponse:
     """
@@ -83,6 +85,8 @@ def get_aggregated_price_rating(
         max_price=max_price,
         min_points=min_points,
         max_points=max_points,
+        page=page,
+        page_size=page_size,
     )
 
 

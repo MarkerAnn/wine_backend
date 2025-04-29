@@ -88,6 +88,8 @@ def fetch_aggregated_price_rating(
     max_price: Optional[float],
     min_points: Optional[int],
     max_points: Optional[int],
+    page: int,
+    page_size: int,
 ) -> AggregatedPriceRatingResponse:
     """
     Group wines into "buckets" (e.g. 10–20kr, 85–90 points) and count them.
@@ -173,10 +175,19 @@ def fetch_aggregated_price_rating(
         )
         buckets.append(bucket)
 
-    # Return the response model with the list of buckets
+    # Sort buckets by price_min and points_min
+    buckets.sort(key=lambda b: (b.price_min, b.points_min))
+
+    # Implement pagination
+    start = (page - 1) * page_size
+    end = start + page_size
+    paginated_buckets = buckets[start:end]
+
+    # REturn the current page of buckets
     return AggregatedPriceRatingResponse(
-        buckets=buckets,
+        buckets=paginated_buckets,
         total_wines=total_wines,
+        total_buckets=len(buckets),
         bucket_size={"price": float(price_bucket_size), "points": points_bucket_size},
     )
 

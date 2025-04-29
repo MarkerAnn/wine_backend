@@ -64,6 +64,7 @@ class AggregatedPriceRatingResponse(BaseModel):
 
     buckets: List[PriceRatingBucket]
     total_wines: int
+    total_buckets: int
     bucket_size: Dict[str, Union[float, int]] = Field(
         ..., description="Size of each bucket (e.g. {'price': 10, 'points': 1})"
     )
