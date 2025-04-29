@@ -8,6 +8,7 @@ from app.models.wine import Wine
 from app.schemas.country_stats import CountryStats, CountriesStatsList, VarietyInfo
 from app.utils.country_mapping import get_geojson_country_name
 
+
 # -------------------------
 # Service to fetch country-level wine statistics
 # -------------------------
@@ -40,7 +41,9 @@ def fetch_country_stats(db: Session, min_wines: int = 50) -> CountriesStatsList:
     for country_data in country_stats_query:
         country_name = country_data.country
         wine_count = int(getattr(country_data, "count"))
-        geojson_country_name = get_geojson_country_name(country_name)  # Convert to geojson name, to match the map in the frontend
+        geojson_country_name = get_geojson_country_name(
+            country_name
+        )  # Convert to geojson name, to match the map in the frontend
 
         # Second query: top varieties(druvsort) for the country
         variety_query = (
@@ -64,8 +67,8 @@ def fetch_country_stats(db: Session, min_wines: int = 50) -> CountriesStatsList:
                     name=variety_data.variety,
                     count=variety_count,
                     percentage=round(percentage, 2),
-        )
-    )
+                )
+            )
 
         # Create a CountryStats object and append to the list
         # round the avg_points and avg_price to 2 decimal places
@@ -87,3 +90,17 @@ def fetch_country_stats(db: Session, min_wines: int = 50) -> CountriesStatsList:
         )
 
     return CountriesStatsList(items=countries_data, total_countries=len(countries_data))
+
+
+def fetch_country_list(db: Session) -> List[str]:
+    """
+    Fetch a list of unique countries where wines are registered.
+    """
+    countries = (
+        db.query(Wine.country)
+        .filter(Wine.country.isnot(None))
+        .distinct()
+        .order_by(Wine.country)
+        .all()
+    )
+    return [country[0] for country in countries]

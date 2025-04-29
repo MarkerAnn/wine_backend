@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+from typing import List
 
 from app.db.database import get_db
 from app.schemas.country_stats import CountriesStatsList
-from app.services.country_stats_service import fetch_country_stats
+from app.services.country_stats_service import fetch_country_stats, fetch_country_list
 
 router = APIRouter(
     prefix="/api/stats",
@@ -22,3 +23,11 @@ def get_countries_stats(
     Get country-level wine statistics including average scores, prices and top varieties.
     """
     return fetch_country_stats(db=db, min_wines=min_wines)
+
+
+@router.get("/country-list", response_model=List[str])
+def get_country_list(db: Session = Depends(get_db)) -> List[str]:
+    """
+    Get a list of unique countries where wines are registered.
+    """
+    return fetch_country_list(db=db)

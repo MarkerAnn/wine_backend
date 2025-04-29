@@ -127,8 +127,18 @@ def search_wines(
     skip = (search_params.page - 1) * search_params.size
     wines = query.offset(skip).limit(search_params.size).all()
 
-    # Map to schemas
-    wine_schemas = [WineSearchResult.model_validate(wine) for wine in wines]
+    # When not getting an entire model from the database, we need to map the result like this
+    wine_schemas = [
+        WineSearchResult(
+            id=wine.id,
+            title=wine.title,
+            price=wine.price,
+            points=wine.points,
+            country=wine.country,
+            variety=wine.variety,
+        )
+        for wine in wines
+    ]
 
     # Calculate total pages
     pages = math.ceil(total / search_params.size)
