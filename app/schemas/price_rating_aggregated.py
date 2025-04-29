@@ -52,9 +52,19 @@ class PriceRatingBucket(BaseModel):
     points_min: int = Field(..., description="Lower bound of rating range")
     points_max: int = Field(..., description="Upper bound of rating range")
     count: int = Field(..., description="Number of wines in this bucket")
-    examples: List[WineExample] = Field(
-        default_factory=list, description="Up to 3 example wines from this bucket"
-    )
+
+
+class BucketExamplesResponse(BaseModel):
+    """
+    Response model for wine examples from a specific price/rating bucket
+    """
+
+    price_min: float
+    price_max: float
+    points_min: int
+    points_max: int
+    count: int
+    examples: List[WineExample]
 
 
 class AggregatedPriceRatingResponse(BaseModel):

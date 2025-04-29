@@ -11,6 +11,7 @@ from app.schemas.price_rating_aggregated import (
     PriceRatingBucket,
     WineExample,
     HeatmapResponse,
+    BucketExamplesResponse,
 )
 
 
@@ -80,7 +81,7 @@ def fetch_price_rating(
 # ------------------------------------------
 def fetch_aggregated_price_rating(
     db: Session,
-    price_bucket_size: float,  # The size of the price bucket (e.g. 10.0 for 10–20kr)
+    price_bucket_size: float,  # The size of the price bucket (e.g. 10.0 for 10–20$)
     points_bucket_size: int,  # The size of the points bucket (e.g. 1 for 85–86 points)
     country: Optional[str],
     variety: Optional[str],
@@ -88,8 +89,8 @@ def fetch_aggregated_price_rating(
     max_price: Optional[float],
     min_points: Optional[int],
     max_points: Optional[int],
-    page: int,
-    page_size: int,
+    page: Optional[int],
+    page_size: Optional[int],
 ) -> AggregatedPriceRatingResponse:
     """
     Group wines into "buckets" (e.g. 10–20kr, 85–90 points) and count them.
@@ -124,16 +125,24 @@ def fetch_aggregated_price_rating(
     # Count how many wines after filter
     total_wines = base_query.count()
 
-    # Create aggregated query so calculations are done in SQL/DB
+    # 1. Create aggregated query so calculations are done in SQL/DB
     agg_query = base_query.with_entities(
         price_bucket_expr.label("price_min"),
         points_bucket_expr.label("points_min"),
         func.count().label("count"),
     ).group_by("price_min", "points_min")
 
-    # Get the aggregated results
-    # Only get the bucket, not the actual wines
-    agg_results = agg_query.all()
+    # 2. Sort in the database
+    agg_query = agg_query.order_by("price_min", "points_min")
+
+    # 3. Count total buckets (for metadata)
+    total_buckets = agg_query.count()
+
+    # 4. Get the specific page or all results
+    if page is not None and page_size is not None:
+        agg_results = agg_query.offset((page - 1) * page_size).limit(page_size).all()
+    else:
+        agg_results = agg_query.all()
 
     # prepare the bucket for response, empty list
     buckets = []
@@ -145,25 +154,6 @@ def fetch_aggregated_price_rating(
         points_min = int(result.points_min)
         count = result.count
 
-        # Get some example wines for this bucket, up to 3
-        example_query = base_query.filter(
-            func.floor(Wine.price / price_bucket_size) * price_bucket_size == price_min,
-            func.floor(Wine.points / points_bucket_size) * points_bucket_size
-            == points_min,
-        ).limit(3)
-        examples = example_query.all()
-
-        # Create examples of wines for this bucket, 3.
-        example_list = []
-        for wine in examples:
-            example = WineExample(
-                name=getattr(wine, "title", f"Wine {wine.id}"),
-                price=float(wine.price),
-                points=int(wine.points),
-                winery=str(wine.winery),
-            )
-            example_list.append(example)
-
         # Create a bucket and add to list
         bucket = PriceRatingBucket(
             price_min=price_min,
@@ -171,23 +161,17 @@ def fetch_aggregated_price_rating(
             points_min=points_min,
             points_max=points_min + points_bucket_size,
             count=count,
-            examples=example_list,
         )
         buckets.append(bucket)
 
-    # Sort buckets by price_min and points_min
-    buckets.sort(key=lambda b: (b.price_min, b.points_min))
-
-    # Implement pagination
-    start = (page - 1) * page_size
-    end = start + page_size
-    paginated_buckets = buckets[start:end]
+    # An extra query is needed to get the total number of buckets
+    total_buckets = agg_query.count()
 
     # REturn the current page of buckets
     return AggregatedPriceRatingResponse(
-        buckets=paginated_buckets,
+        buckets=buckets,
         total_wines=total_wines,
-        total_buckets=len(buckets),
+        total_buckets=total_buckets,
         bucket_size={"price": float(price_bucket_size), "points": points_bucket_size},
     )
 
@@ -305,4 +289,66 @@ def fetch_price_rating_heatmap(
         max_count=max_count,
         total_wines=total_wines,
         bucket_size={"price": float(price_bucket_size), "points": points_bucket_size},
+    )
+
+
+# ---------------------------------------------
+# Fetch example wines from a specific bucket
+# ---------------------------------------------
+def fetch_bucket_examples(
+    db: Session,
+    price_min: float,
+    points_min: int,
+    price_bucket_size: float,
+    points_bucket_size: int,
+    country: Optional[str] = None,
+    variety: Optional[str] = None,
+    limit: int = 3,
+) -> BucketExamplesResponse:
+    """
+    Fetch example wines for a specific price/rating bucket.
+    This is separated from the main aggregation query for performance.
+    """
+    # Basquery with filter
+    query = db.query(Wine).filter(
+        and_(Wine.price.isnot(None), Wine.points.isnot(None), Wine.country.isnot(None))
+    )
+
+    # Add filter tp match the bucket
+    query = query.filter(
+        func.floor(Wine.price / price_bucket_size) * price_bucket_size == price_min,
+        func.floor(Wine.points / points_bucket_size) * points_bucket_size == points_min,
+    )
+
+    # add other filters
+    if country:
+        query = query.filter(Wine.country == country)
+    if variety:
+        query = query.filter(Wine.variety == variety)
+
+    # count the total number of wines in this bucket
+    count = query.count()
+
+    # Get example wines (3 per bucket)
+    examples = query.limit(limit).all()
+
+    # Create a list of WineExample objects
+    example_list = []
+    for wine in examples:
+        example = WineExample(
+            name=getattr(wine, "title", f"Wine {wine.id}"),
+            price=float(wine.price),
+            points=int(wine.points),
+            winery=str(wine.winery),
+        )
+        example_list.append(example)
+
+    # Return example with metadata
+    return BucketExamplesResponse(
+        price_min=price_min,
+        price_max=price_min + price_bucket_size,
+        points_min=points_min,
+        points_max=points_min + points_bucket_size,
+        count=count,
+        examples=example_list,
     )

@@ -7,11 +7,13 @@ from app.schemas.price_rating import PriceRatingResponse
 from app.schemas.price_rating_aggregated import (
     AggregatedPriceRatingResponse,
     HeatmapResponse,
+    BucketExamplesResponse,
 )
 from app.services.price_rating_services import (
     fetch_price_rating,
     fetch_aggregated_price_rating,
     fetch_price_rating_heatmap,
+    fetch_bucket_examples,
 )
 
 router = APIRouter(
@@ -68,8 +70,8 @@ def get_aggregated_price_rating(
     max_price: Optional[float] = Query(None, ge=0),
     min_points: Optional[int] = Query(None, ge=0),
     max_points: Optional[int] = Query(None, ge=0),
-    page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(100, ge=1, le=500, description="Buckets per page"),
+    page: Optional[int] = Query(None, ge=1, description="Page number"),
+    page_size: Optional[int] = Query(None, ge=1, le=500, description="Buckets per page"),
     db: Session = Depends(get_db),
 ) -> AggregatedPriceRatingResponse:
     """
@@ -120,4 +122,32 @@ def get_price_rating_heatmap(
         max_price=max_price,
         min_points=min_points,
         max_points=max_points,
+    )
+
+
+@router.get(
+    "/bucket-examples/{price_min}/{points_min}",
+    response_model=BucketExamplesResponse,
+    summary="Fetch example wines from a specific bucket",
+)
+def get_bucket_examples(
+    price_min: float,
+    points_min: int,
+    price_bucket_size: float = Query(10.0, gt=0),
+    points_bucket_size: int = Query(1, gt=0),
+    country: Optional[str] = Query(None),
+    variety: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+) -> BucketExamplesResponse:
+    """
+    Endpoint returning example wines from a specific price/rating bucket.
+    """
+    return fetch_bucket_examples(
+        db=db,
+        price_min=price_min,
+        points_min=points_min,
+        price_bucket_size=price_bucket_size,
+        points_bucket_size=points_bucket_size,
+        country=country,
+        variety=variety,
     )

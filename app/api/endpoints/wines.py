@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.models.wine import Wine as WineModel  # Tydligt alias för SQLAlchemy-modell
+from app.models.wine import Wine as WineModel
 from app.schemas.wine import Wine as WineSchema, WineList
 
 router = APIRouter(
