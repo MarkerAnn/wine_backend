@@ -5,7 +5,13 @@ from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.models.wine import Wine as WineModel
-from app.schemas.wine import Wine as WineSchema, WineList
+from app.schemas.wine import (
+    Wine as WineSchema,
+    WineList,
+    WineSearch,
+    WineSearchResult,
+    WineSearchList,
+)
 
 router = APIRouter(
     prefix="/api/wines",
@@ -68,3 +74,69 @@ def get_wines(
     pages = math.ceil(total / size)
 
     return WineList(items=wine_schemas, total=total, page=page, size=size, pages=pages)
+
+
+@router.post("/search", response_model=WineSearchList)
+def search_wines(
+    search_params: WineSearch,
+    db: Session = Depends(get_db),
+) -> WineSearchList:
+    """
+    Search and filter wines based on various criteria
+
+    Parameters:
+    - search_params: The search and filter parameters
+
+    Returns:
+    - WineList: Paginated list of filtered wines
+    """
+    query = db.query(
+        WineModel.id,
+        WineModel.title,
+        WineModel.price,
+        WineModel.points,
+        WineModel.country,
+        WineModel.variety,
+    )
+
+    # Apply search filters. Use tsvector for full-text search
+    if search_params.search:
+        query = query.filter(
+            WineModel.search_vector.match(
+                search_params.search, postgresql_regconfig="english"
+            )
+        )
+
+    if search_params.country:
+        query = query.filter(WineModel.country == search_params.country)
+    if search_params.variety:
+        query = query.filter(WineModel.variety == search_params.variety)
+    if search_params.min_price is not None:
+        query = query.filter(WineModel.price >= search_params.min_price)
+    if search_params.max_price is not None:
+        query = query.filter(WineModel.price <= search_params.max_price)
+    if search_params.min_points is not None:
+        query = query.filter(WineModel.points >= search_params.min_points)
+    if search_params.max_points is not None:
+        query = query.filter(WineModel.points <= search_params.max_points)
+
+    # Get total filtered count
+    total = query.count()
+
+    # Pagination
+    skip = (search_params.page - 1) * search_params.size
+    wines = query.offset(skip).limit(search_params.size).all()
+
+    # Map to schemas
+    wine_schemas = [WineSearchResult.model_validate(wine) for wine in wines]
+
+    # Calculate total pages
+    pages = math.ceil(total / search_params.size)
+
+    return WineSearchList(
+        items=wine_schemas,
+        total=total,
+        page=search_params.page,
+        size=search_params.size,
+        pages=pages,
+    )

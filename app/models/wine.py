@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, Numeric, Text, DateTime
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from app.db.database import Base
 
 
@@ -26,3 +27,4 @@ class Wine(Base):
     winery = Column(Text)
     created_at = Column(DateTime(timezone=True), default=func.now())  # noqa: E1102
     source = Column(Text, default="kaggle")
+    search_vector = Column(TSVECTOR)
