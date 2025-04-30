@@ -28,3 +28,4 @@ class Wine(Base):
     created_at = Column(DateTime(timezone=True), default=func.now())  # noqa: E1102
     source = Column(Text, default="kaggle")
     search_vector = Column(TSVECTOR)
+
