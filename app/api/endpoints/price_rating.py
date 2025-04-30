@@ -6,13 +6,11 @@ from app.db.database import get_db
 from app.schemas.price_rating import PriceRatingResponse
 from app.schemas.price_rating_aggregated import (
     AggregatedPriceRatingResponse,
-    HeatmapResponse,
     BucketExamplesResponse,
 )
 from app.services.price_rating_services import (
     fetch_price_rating,
     fetch_aggregated_price_rating,
-    fetch_price_rating_heatmap,
     fetch_bucket_examples,
 )
 
@@ -91,39 +89,6 @@ def get_aggregated_price_rating(
         max_points=max_points,
         page=page,
         page_size=page_size,
-    )
-
-
-@router.get(
-    "/price-rating-heatmap",
-    response_model=HeatmapResponse,
-    summary="Fetch heatmap data for price vs rating distribution",
-)
-def get_price_rating_heatmap(
-    *,
-    price_bucket_size: float = Query(10.0, gt=0),
-    points_bucket_size: int = Query(1, gt=0),
-    country: Optional[str] = Query(None),
-    variety: Optional[str] = Query(None),
-    min_price: Optional[float] = Query(None, ge=0),
-    max_price: Optional[float] = Query(None, ge=0),
-    min_points: Optional[int] = Query(None, ge=0),
-    max_points: Optional[int] = Query(None, ge=0),
-    db: Session = Depends(get_db),
-) -> HeatmapResponse:
-    """
-    Endpoint returning pre-formatted heatmap arrays and metadata for frontend.
-    """
-    return fetch_price_rating_heatmap(
-        db=db,
-        price_bucket_size=price_bucket_size,
-        points_bucket_size=points_bucket_size,
-        country=country,
-        variety=variety,
-        min_price=min_price,
-        max_price=max_price,
-        min_points=min_points,
-        max_points=max_points,
     )
 
 

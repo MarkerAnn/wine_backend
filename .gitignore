@@ -14,5 +14,8 @@ __pycache__/
 .vscode/
 
 # Output-filer
-*.txt
-*.md
+repomix-output.txt
+kladd.md
+endpoints.md
+visualization.md
+

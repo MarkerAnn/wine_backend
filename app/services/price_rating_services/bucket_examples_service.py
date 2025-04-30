@@ -57,8 +57,8 @@ def fetch_bucket_examples(
     for wine in examples:
         example = WineExample(
             name=getattr(wine, "title", f"Wine {wine.id}"),
-            price=float(wine.price) if wine.price is not None else 0.0, # type: ignore
-            points=int(wine.points) if wine.points is not None else 0,
+            price=float(wine.price) if wine.price is not None else 0.0,
+            points=int(wine.points),
             winery=str(wine.winery),
         )
         example_list.append(example)

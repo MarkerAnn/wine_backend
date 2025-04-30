@@ -81,17 +81,12 @@ def fetch_aggregated_price_rating(
 
     # For each aggregated bucket, create a new PriceRatingBucket object
     # and add it to the list
-    for result in agg_results:
-        price_min = float(result.price_min)
-        points_min = int(result.points_min)
-        bucket_count = result.count
-
-        # Create a bucket and add to list
+    for price_min_val, points_min_val, bucket_count in agg_results:
         bucket = PriceRatingBucket(
-            price_min=price_min,
-            price_max=price_min + price_bucket_size,
-            points_min=points_min,
-            points_max=points_min + points_bucket_size,
+            price_min=float(price_min_val),
+            price_max=float(price_min_val) + price_bucket_size,
+            points_min=int(points_min_val),
+            points_max=int(points_min_val) + points_bucket_size,
             count=bucket_count,
         )
         buckets.append(bucket)
