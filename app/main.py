@@ -7,6 +7,7 @@ from app.api.endpoints import wines, bucket_wines, country_stats, price_rating
 
 # Create FastAPI app instance
 app = FastAPI(
+    root_path="/wt2",
     title="Wine API",
     description="API for wine data visualization",
     version="0.1.0",
