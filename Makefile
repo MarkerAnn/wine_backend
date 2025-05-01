@@ -1,5 +1,5 @@
 lint:
-	pylint src
+	pylint app
 
 format:
 	black src

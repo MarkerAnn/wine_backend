@@ -11,6 +11,7 @@ disable=
     R0903,  # Too few public methods (good for small classes)
     E1102,  # not-callable (för SQLAlchemy func.count() etc.)
     C0103,  # invalid-name (för SQLAlchemy-genererade namn i queries)
+    R0917,  # Too many positional arguments (SQLAlchemy queries)
     R0913,  # too-many-arguments (för SQLAlchemy modeller med många kolumner)
     R0914,  # too-many-locals (vanligt i komplexa queries)
 

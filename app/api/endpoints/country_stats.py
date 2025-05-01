@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
 from typing import List
+from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, Query
 
 from app.db.database import get_db
 from app.schemas.country_stats import CountriesStatsList
@@ -20,7 +20,8 @@ def get_countries_stats(
     ),
 ) -> CountriesStatsList:
     """
-    Get country-level wine statistics including average scores, prices and top varieties.
+    Get country-level wine statistics including average scores
+    prices and top varieties.
     """
     return fetch_country_stats(db=db, min_wines=min_wines)
 

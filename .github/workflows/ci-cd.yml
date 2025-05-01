@@ -1,0 +1,62 @@
+name: CI/CD FastAPI Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  lint-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checka ut koden
+        uses: actions/checkout@v3
+
+      - name: Ställ in Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Installera dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Kör Pylint (linting)
+        run: |
+          pylint app
+
+      - name: Konfigurera SSH
+        if: ${{ success() }}
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Lägg till VPS fingerprint
+        if: ${{ success() }}
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy till VPS
+        if: ${{ success() }}
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            set -e
+            mkdir -p /var/www/wt2-backend
+            cd /var/www/wt2-backend
+
+            if [ ! -d ".git" ]; then
+              git init
+              git remote add origin git@github.com:MarkerAnn/wine_backend.git
+
+            fi
+
+            git pull origin main
+
+            docker stop wt2-api || true
+            docker rm wt2-api || true
+
+            docker build -t wt2-api .
+            docker run -d --name wt2-api -p 8000:5000 --restart unless-stopped --env-file .env wt2-api
+          EOF

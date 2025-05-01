@@ -127,7 +127,8 @@ def search_wines(
     skip = (search_params.page - 1) * search_params.size
     wines = query.offset(skip).limit(search_params.size).all()
 
-    # When not getting an entire model from the database, we need to map the result like this
+    # When not getting an entire model from the database
+    # we need to map the result like this
     wine_schemas = [
         WineSearchResult(
             id=wine.id,

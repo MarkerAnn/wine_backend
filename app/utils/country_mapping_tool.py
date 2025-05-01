@@ -1,5 +1,3 @@
-
-
 import json
 import os
 import sys
@@ -126,7 +124,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
 
-
-# Run the script: python -m app.utils.country_mapping_tool  
+# Run the script: python -m app.utils.country_mapping_tool
 # Add the path to your GeoJSON file when prompted, without quotes.
 # Example: /Users/angelicamarker/Desktop/LNU 2023-2026/lnu-ÅK2/courses/1dv027 - webben/WT2/Assignment/wine_frontend/public/data/countries.geo.json

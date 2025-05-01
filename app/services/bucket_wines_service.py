@@ -11,6 +11,7 @@ from app.schemas.bucket_wines import (
     BucketWinesResponse,
 )
 
+
 # -------------------------------------------------------
 # Service to fetch wines in a specific price-rating bucket
 # -------------------------------------------------------
@@ -74,6 +75,7 @@ def fetch_wines_in_bucket(
     return BucketWinesResponse(
         wines=wine_list, pagination=pagination, total=total_count
     )
+
 
 # ----------------------------------------------------------
 # Private function to handle pagination and formatting
