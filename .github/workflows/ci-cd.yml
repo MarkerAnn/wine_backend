@@ -3,6 +3,7 @@ name: CI/CD FastAPI Pipeline
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   lint-and-deploy:
