@@ -17,6 +17,11 @@ def fetch_country_stats(db: Session, min_wines: int = 50) -> CountriesStatsList:
     Fetch country-level wine statistics including top varieties.
     This is used to generate the country overview.
     """
+
+    # Validate min_wines
+    if min_wines < 0:
+        raise ValueError("min_wines must be 0 or greater")
+
     # First query: basic statistics per country
     country_stats_query = (
         db.query(

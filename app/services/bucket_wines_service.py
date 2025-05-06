@@ -1,4 +1,5 @@
 from typing import Optional, Tuple, List
+import binascii
 import base64
 import json
 from sqlalchemy.orm import Session
@@ -38,7 +39,19 @@ def fetch_wines_in_bucket(
 
     Returns:
         BucketWinesResponse: List of wines and pagination info
+
+    Raises:
+        ValueError: if input parameters are invalid.
     """
+
+    # Validate bucket ranges
+    if price_min >= price_max:
+        raise ValueError(f"Invalid price range: min={price_min}, max={price_max}")
+    if points_min >= points_max:
+        raise ValueError(f"Invalid points range: min={points_min}, max={points_max}")
+    if limit < 1:
+        raise ValueError("Limit must be at least 1")
+
     # Base query with bucket filters
     query = db.query(Wine).filter(
         and_(
@@ -55,11 +68,16 @@ def fetch_wines_in_bucket(
     # Process cursor if provided, cursorbased pagination. Decode to get the last_id and filter
     # the query to only include wines with id greater than last_id
     last_id = None
+
     if cursor:
-        cursor_data = json.loads(base64.b64decode(cursor).decode("utf-8"))
-        last_id = cursor_data.get("last_id")
-        if last_id:
-            query = query.filter(Wine.id > last_id)
+        try:
+            decoded = base64.b64decode(cursor).decode("utf-8")
+            cursor_data = json.loads(decoded)
+            last_id = cursor_data.get("last_id")
+            if last_id:
+                query = query.filter(Wine.id > last_id)
+        except (json.JSONDecodeError, ValueError, binascii.Error) as e:
+            raise ValueError("Invalid cursor format") from e
 
     # Order by id and limit results
     query = query.order_by(Wine.id).limit(

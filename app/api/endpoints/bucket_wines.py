@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Query, HTTPException, Path
+from fastapi import APIRouter, Depends, Query, Path
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
@@ -22,18 +22,15 @@ def _fetch_bucket(
     db: Session,
 ):
     """Shared logic for fetching bucket wines."""
-    try:
-        return fetch_wines_in_bucket(
-            db=db,
-            price_min=price_min,
-            price_max=price_max,
-            points_min=points_min,
-            points_max=points_max,
-            cursor=cursor,
-            limit=limit,
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
+    return fetch_wines_in_bucket(
+        db=db,
+        price_min=price_min,
+        price_max=price_max,
+        points_min=points_min,
+        points_max=points_max,
+        cursor=cursor,
+        limit=limit,
+    )
 
 
 @router.get("/", response_model=BucketWinesResponse)

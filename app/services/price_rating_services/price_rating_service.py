@@ -22,12 +22,33 @@ def fetch_price_rating(
     Fetch wine data filtered by price and rating.
     Each datapoint is used for a scatterplot (price vs rating).
     """
-    # Start the query with required fields and only include rows where price and country exist
+
+    # Validate pagination
+    if page < 1:
+        raise ValueError("Page number must be at least 1")
+    if page_size < 1:
+        raise ValueError("Page size must be at least 1")
+
+    # Validate price range
+    if min_price is not None and max_price is not None and min_price > max_price:
+        raise ValueError(
+            f"Invalid price range: min_price={min_price}, max_price={max_price}"
+        )
+
+    # Validate points range
+    if min_points is not None and max_points is not None and min_points > max_points:
+        raise ValueError(
+            f"Invalid points range: min_points={min_points}, max_points={max_points}"
+        )
+
+    # Start the query with required fields and only include 
+    # rows where price and country exist
     query = db.query(
         Wine.id, Wine.price, Wine.points, Wine.country, Wine.variety, Wine.winery
     ).filter(Wine.price.isnot(None), Wine.country.isnot(None))
 
-    # Apply filters if they are given, so we can use them in the query (e.g. country, variety)
+    # Apply filters if they are given, so we can use them in the query 
+    # (e.g. country, variety)
     if country:
         query = query.filter(Wine.country == country)
     if variety:
@@ -48,7 +69,8 @@ def fetch_price_rating(
     # Apply pagination and fetch results
     wines = query.offset((page - 1) * page_size).limit(page_size).all()
 
-    # Convert to Pydantic response model using correct Python types to match the pydantic schema
+    # Convert to Pydantic response model using correct 
+    # Python types to match the pydantic schema
     data: List[PriceRatingDataPoint] = [
         PriceRatingDataPoint(
             id=wine.id,

@@ -28,6 +28,39 @@ def fetch_aggregated_price_rating(
     Group wines into "buckets" (e.g. 10–20kr, 85–90 points) and count them.
     Also include up to 3 example wines per bucket.
     """
+
+    # Validate bucket sizes
+    if price_bucket_size <= 0:
+        raise ValueError("price_bucket_size must be greater than 0")
+    if points_bucket_size <= 0:
+        raise ValueError("points_bucket_size must be greater than 0")
+
+    # Validate pagination (if provided)
+    if page is not None and page < 1:
+        raise ValueError("Page number must be at least 1")
+    if page_size is not None and page_size < 1:
+        raise ValueError("Page size must be at least 1")
+
+    # Validate price range
+    if (
+        min_price is not None
+        and max_price is not None
+        and min_price > max_price
+    ):
+        raise ValueError(
+            f"Invalid price range: min_price={min_price}, max_price={max_price}"
+        )
+
+    # Validate points range
+    if (
+        min_points is not None
+        and max_points is not None
+        and min_points > max_points
+    ):
+        raise ValueError(
+            f"Invalid points range: min_points={min_points}, max_points={max_points}"
+        )
+
     # Calculate price_bucket in SQL with FLOOR-function
     price_bucket_expr = func.floor(Wine.price / price_bucket_size) * price_bucket_size
     # Calculatte points_bucket in SQL with FLOOR-function
@@ -35,7 +68,8 @@ def fetch_aggregated_price_rating(
         func.floor(Wine.points / points_bucket_size) * points_bucket_size
     )
 
-    # Start the base query with required fields and only include rows where price, points and country exist
+    # Start the base query with required fields and only include 
+    # rows where price, points and country exist
     base_query = db.query(Wine).filter(
         and_(Wine.price.isnot(None), Wine.points.isnot(None), Wine.country.isnot(None))
     )
