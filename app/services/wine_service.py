@@ -15,7 +15,7 @@ from app.schemas.wine import (
     WineSearchResult,
     WineSearchList,
 )
-from app.schemas.wine_id_list_response import WineIdListResponse, Pagination
+from app.schemas.wine_id_list_response import WineListByCountryResponse
 
 
 def get_wine_by_id(db: Session, wine_id: int) -> Optional[WineModel]:
@@ -133,16 +133,24 @@ def search_wines(db: Session, params: WineSearch) -> WineSearchList:
     )
 
 
-def get_wine_ids_by_country(
+def get_wine_details_by_country(
     db: Session,
     country: str,
     limit: int = 100,
     cursor: Optional[str] = None,
-) -> WineIdListResponse:
+) -> WineListByCountryResponse:
     """
-    Fetch paginated wine IDs for a specific country.
+    Fetch paginated wine details for a specific country.
     """
-    query = db.query(WineModel.id).filter(WineModel.country == country)
+    query = db.query(
+        WineModel.id,
+        WineModel.title,
+        WineModel.price,
+        WineModel.points,
+        WineModel.country,
+        WineModel.variety,
+        WineModel.winery,
+    ).filter(WineModel.country == country)
 
     if cursor:
         try:
@@ -157,19 +165,30 @@ def get_wine_ids_by_country(
     query = query.order_by(WineModel.id).limit(limit + 1)
     results = query.all()
 
-    ids = [wine_id for (wine_id,) in results[:limit]]
+    wines = [
+        WineSearchResult(
+            id=w.id,
+            title=w.title,
+            price=w.price,
+            points=w.points,
+            country=w.country,
+            variety=w.variety,
+        )
+        for w in results[:limit]
+    ]
 
     has_next = len(results) > limit
     next_cursor = None
 
-    if has_next and ids:
-        cursor_data = {"last_id": ids[-1]}
+    if has_next and wines:
+        cursor_data = {"last_id": wines[-1].id}
         next_cursor = base64.b64encode(json.dumps(cursor_data).encode("utf-8")).decode(
             "utf-8"
         )
 
-    return WineIdListResponse(
+    return WineListByCountryResponse(
         country=country,
-        wine_ids=ids,
-        pagination=Pagination(next_cursor=next_cursor, has_next=has_next),
+        wines=wines,
+        next_cursor=next_cursor,
+        has_next=has_next,
     )

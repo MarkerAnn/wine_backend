@@ -9,12 +9,12 @@ from app.schemas.wine import (
     WineSearch,
     WineSearchList,
 )
-from app.schemas.wine_id_list_response import WineIdListResponse
+from app.schemas.wine_id_list_response import WineListByCountryResponse
 
 from app.services.wine_service import (
     get_wine_by_id,
     get_wines_paginated,
-    get_wine_ids_by_country,
+    get_wine_details_by_country,
     search_wines,
 )
 
@@ -47,17 +47,19 @@ def get_wines(
     return get_wines_paginated(db=db, page=page, size=size)
 
 
-@router.get("/by-country/{country}/ids", response_model=WineIdListResponse)
-def get_wine_ids_by_country_endpoint(
-    country: str = Path(..., description="Country to fetch wine IDs for"),
+@router.get("/by-country/{country}", response_model=WineListByCountryResponse)
+def get_wines_by_country_endpoint(
+    country: str = Path(..., description="Country to fetch wines for"),
     limit: int = Query(100, ge=1, le=1000),
     cursor: Optional[str] = Query(None, description="Pagination cursor"),
     db: Session = Depends(get_db),
 ):
     """
-    Get a paginated list of wine IDs for a specific country.
+    Get a paginated list of wine details for a specific country.
     """
-    return get_wine_ids_by_country(db=db, country=country, limit=limit, cursor=cursor)
+    return get_wine_details_by_country(
+        db=db, country=country, limit=limit, cursor=cursor
+    )
 
 
 @router.post("/search", response_model=WineSearchList)
