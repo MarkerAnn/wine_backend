@@ -12,6 +12,7 @@ from app.schemas.wine import (
     WineSearchList,
 )
 
+
 def get_wine_by_id(db: Session, wine_id: int) -> Optional[WineModel]:
     """
     Retrieve a single WineModel by its ID.
@@ -19,10 +20,16 @@ def get_wine_by_id(db: Session, wine_id: int) -> Optional[WineModel]:
     """
     return db.query(WineModel).filter(WineModel.id == wine_id).first()
 
+
 def get_wines_paginated(db: Session, page: int, size: int) -> WineList:
     """
     Retrieve paginated list of all wines.
     """
+    if page < 1:
+        raise ValueError("Page number must be at least 1")
+    if size < 1:
+        raise ValueError("Page size must be at least 1")
+
     skip = (page - 1) * size
     total = db.query(WineModel).count()
     wines = db.query(WineModel).offset(skip).limit(size).all()
@@ -36,10 +43,39 @@ def get_wines_paginated(db: Session, page: int, size: int) -> WineList:
         pages=pages,
     )
 
+
 def search_wines(db: Session, params: WineSearch) -> WineSearchList:
     """
     Search and filter wines based on criteria in WineSearch.
+    Raises ValueError for invalid parameter combinations.
     """
+    # Validate pagination
+    if params.page < 1:
+        raise ValueError("Page number must be at least 1")
+    if params.size < 1:
+        raise ValueError("Page size must be at least 1")
+
+    # Validate price range
+    if (
+        params.min_price is not None
+        and params.max_price is not None
+        and params.min_price > params.max_price
+    ):
+        raise ValueError(
+            f"Invalid price range: min_price={params.min_price}, max_price={params.max_price}"
+        )
+
+    # Validate points range
+    if (
+        params.min_points is not None
+        and params.max_points is not None
+        and params.min_points > params.max_points
+    ):
+        raise ValueError(
+            f"Invalid points range: min_points={params.min_points}, max_points={params.max_points}"
+        )
+
+    # Start building the query
     query = db.query(
         WineModel.id,
         WineModel.title,
@@ -51,9 +87,7 @@ def search_wines(db: Session, params: WineSearch) -> WineSearchList:
 
     if params.search:
         query = query.filter(
-            WineModel.search_vector.match(
-                params.search, postgresql_regconfig="english"
-            )
+            WineModel.search_vector.match(params.search, postgresql_regconfig="english")
         )
     if params.country:
         query = query.filter(WineModel.country == params.country)
