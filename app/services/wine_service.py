@@ -1,4 +1,8 @@
 import math
+import base64
+import json
+import binascii
+
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -11,6 +15,7 @@ from app.schemas.wine import (
     WineSearchResult,
     WineSearchList,
 )
+from app.schemas.wine_id_list_response import WineIdListResponse, Pagination
 
 
 def get_wine_by_id(db: Session, wine_id: int) -> Optional[WineModel]:
@@ -125,4 +130,46 @@ def search_wines(db: Session, params: WineSearch) -> WineSearchList:
         page=params.page,
         size=params.size,
         pages=pages,
+    )
+
+
+def get_wine_ids_by_country(
+    db: Session,
+    country: str,
+    limit: int = 100,
+    cursor: Optional[str] = None,
+) -> WineIdListResponse:
+    """
+    Fetch paginated wine IDs for a specific country.
+    """
+    query = db.query(WineModel.id).filter(WineModel.country == country)
+
+    if cursor:
+        try:
+            decoded = base64.b64decode(cursor).decode("utf-8")
+            cursor_data = json.loads(decoded)
+            last_id = cursor_data.get("last_id")
+            if last_id:
+                query = query.filter(WineModel.id > last_id)
+        except (json.JSONDecodeError, ValueError, binascii.Error) as e:
+            raise ValueError("Invalid cursor format") from e
+
+    query = query.order_by(WineModel.id).limit(limit + 1)
+    results = query.all()
+
+    ids = [wine_id for (wine_id,) in results[:limit]]
+
+    has_next = len(results) > limit
+    next_cursor = None
+
+    if has_next and ids:
+        cursor_data = {"last_id": ids[-1]}
+        next_cursor = base64.b64encode(json.dumps(cursor_data).encode("utf-8")).decode(
+            "utf-8"
+        )
+
+    return WineIdListResponse(
+        country=country,
+        wine_ids=ids,
+        pagination=Pagination(next_cursor=next_cursor, has_next=has_next),
     )

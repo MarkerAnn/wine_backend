@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
@@ -8,9 +9,12 @@ from app.schemas.wine import (
     WineSearch,
     WineSearchList,
 )
+from app.schemas.wine_id_list_response import WineIdListResponse
+
 from app.services.wine_service import (
     get_wine_by_id,
     get_wines_paginated,
+    get_wine_ids_by_country,
     search_wines,
 )
 
@@ -41,6 +45,19 @@ def get_wines(
     Get a paginated list of wines
     """
     return get_wines_paginated(db=db, page=page, size=size)
+
+
+@router.get("/by-country/{country}/ids", response_model=WineIdListResponse)
+def get_wine_ids_by_country_endpoint(
+    country: str = Path(..., description="Country to fetch wine IDs for"),
+    limit: int = Query(100, ge=1, le=1000),
+    cursor: Optional[str] = Query(None, description="Pagination cursor"),
+    db: Session = Depends(get_db),
+):
+    """
+    Get a paginated list of wine IDs for a specific country.
+    """
+    return get_wine_ids_by_country(db=db, country=country, limit=limit, cursor=cursor)
 
 
 @router.post("/search", response_model=WineSearchList)
