@@ -6,12 +6,10 @@ from app.db.database import get_db
 from app.schemas.price_rating import PriceRatingResponse
 from app.schemas.price_rating_aggregated import (
     AggregatedPriceRatingResponse,
-    BucketExamplesResponse,
 )
 from app.services.price_rating_services import (
     fetch_price_rating,
     fetch_aggregated_price_rating,
-    fetch_bucket_examples,
 )
 
 router = APIRouter(
@@ -89,32 +87,4 @@ def get_aggregated_price_rating(
         max_points=max_points,
         page=page,
         page_size=page_size,
-    )
-
-
-@router.get(
-    "/bucket-examples/{price_min}/{points_min}",
-    response_model=BucketExamplesResponse,
-    summary="Fetch example wines from a specific bucket",
-)
-def get_bucket_examples(
-    price_min: float,
-    points_min: int,
-    price_bucket_size: float = Query(10.0, gt=0),
-    points_bucket_size: int = Query(1, gt=0),
-    country: Optional[str] = Query(None),
-    variety: Optional[str] = Query(None),
-    db: Session = Depends(get_db),
-) -> BucketExamplesResponse:
-    """
-    Endpoint returning example wines from a specific price/rating bucket.
-    """
-    return fetch_bucket_examples(
-        db=db,
-        price_min=price_min,
-        points_min=points_min,
-        price_bucket_size=price_bucket_size,
-        points_bucket_size=points_bucket_size,
-        country=country,
-        variety=variety,
     )

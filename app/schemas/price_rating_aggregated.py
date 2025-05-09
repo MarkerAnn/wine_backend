@@ -25,19 +25,6 @@ class PriceRatingBucket(BaseModel):
     count: int = Field(..., description="Number of wines in this bucket")
 
 
-class BucketExamplesResponse(BaseModel):
-    """
-    Response model for wine examples from a specific price/rating bucket
-    """
-
-    price_min: float
-    price_max: float
-    points_min: int
-    points_max: int
-    count: int
-    examples: List[WineExample]
-
-
 class AggregatedPriceRatingResponse(BaseModel):
     """
     Response model for aggregated price vs rating data

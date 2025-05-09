@@ -3,9 +3,10 @@ import base64
 import json
 import binascii
 
-from typing import Optional
+from typing import Optional, List, Tuple
 
 from sqlalchemy.orm import Session
+from sqlalchemy.engine import Row
 
 from app.models.wine import Wine as WineModel
 from app.schemas.wine import (
@@ -192,3 +193,17 @@ def get_wine_details_by_country(
         next_cursor=next_cursor,
         has_next=has_next,
     )
+
+
+def fetch_variety_list(db: Session) -> List[str]:
+    """
+    Fetch a list of unique wine varieties.
+    """
+    varieties: List[Row[Tuple[Optional[str]]]] = (
+        db.query(WineModel.variety)
+        .filter(WineModel.variety.isnot(None))
+        .distinct()
+        .order_by(WineModel.variety)
+        .all()
+    )
+    return [v[0] for v in varieties]

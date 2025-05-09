@@ -76,3 +76,4 @@ class WineSearchList(BaseModel):
     pages: int
 
     model_config = ConfigDict(from_attributes=True)
+

@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Query, Path
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
@@ -47,29 +47,6 @@ def get_wines_in_bucket(
     Get paginated list of wines in a specific price-rating bucket.
 
     Query-param version.
-    """
-    return _fetch_bucket(
-        price_min, price_max, points_min, points_max, cursor, limit, db
-    )
-
-
-@router.get(
-    "/heatmap/{price_min}/{price_max}/{points_min}/{points_max}",
-    response_model=BucketWinesResponse,
-)
-def get_wines_in_bucket_by_range(
-    price_min: float = Path(..., description="Minimum price for the bucket"),
-    price_max: float = Path(..., description="Maximum price for the bucket"),
-    points_min: int = Path(..., description="Minimum points for the bucket"),
-    points_max: int = Path(..., description="Maximum points for the bucket"),
-    cursor: Optional[str] = Query(None, description="Pagination cursor"),
-    limit: int = Query(10, description="Number of results per page", ge=1, le=50),
-    db: Session = Depends(get_db),
-):
-    """
-    Get paginated list of wines in a specific price-rating bucket.
-
-    Path-param version for heatmap clicks.
     """
     return _fetch_bucket(
         price_min, price_max, points_min, points_max, cursor, limit, db

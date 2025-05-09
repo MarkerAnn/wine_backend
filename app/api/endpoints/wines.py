@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy.orm import Session
 
@@ -9,6 +9,7 @@ from app.schemas.wine import (
     WineSearch,
     WineSearchList,
 )
+
 from app.schemas.wine_id_list_response import WineListByCountryResponse
 
 from app.services.wine_service import (
@@ -16,12 +17,21 @@ from app.services.wine_service import (
     get_wines_paginated,
     get_wine_details_by_country,
     search_wines,
+    fetch_variety_list,
 )
 
 router = APIRouter(
     prefix="/api/wines",
     tags=["wines"],
 )
+
+
+@router.get("/variety-list", response_model=List[str])
+def get_variety_list(db: Session = Depends(get_db)) -> List[str]:
+    """
+    Get a list of unique wine varieties.
+    """
+    return fetch_variety_list(db)
 
 
 @router.get("/{wine_id}", response_model=WineSchema)
