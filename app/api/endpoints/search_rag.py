@@ -24,5 +24,5 @@ async def answer_endpoint(request: SearchRequest):
     """
     Answer a wine-related question using RAG (retrieval + generation).
     """
-    answer = answer_with_rag(request.query)
-    return {"answer": answer}
+    result = answer_with_rag(request.query)
+    return result

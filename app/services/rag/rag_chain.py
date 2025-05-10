@@ -1,7 +1,7 @@
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
-from langchain.chains.retrieval_qa.base import RetrievalQA 
+from langchain.chains.retrieval_qa.base import RetrievalQA
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from app.core.config import VECTORSTORE_DIR, EMBEDDING_MODEL_NAME
@@ -41,7 +41,7 @@ def search_wines(query: str) -> List[SearchResult]:
         )
     return results
 
-def answer_with_rag(query: str) -> Tuple[str, List[str]]:
+def answer_with_rag(query: str) -> Dict[str, Any]:
     """
     Use RAG to answer a query, strictly using only the Chroma data.
     """
@@ -72,19 +72,20 @@ def answer_with_rag(query: str) -> Tuple[str, List[str]]:
     result = qa_chain.invoke({"query": query})
 
     answer = result["result"]
-    sources = [doc.page_content for doc in result.get("source_documents", [])]
+    source_docs = result.get("source_documents", [])
 
-    # Print the generated answer
-    print("\n=== Generated Answer ===")
-    print(answer)
+    sources = []
+    for doc in source_docs:
+        metadata = doc.metadata
+        sources.append({
+            "id": metadata.get("id", ""),
+            "title": metadata.get("title", ""),
+            "country": metadata.get("country", ""),
+            "variety": metadata.get("variety", ""),
+            "description": doc.page_content,
+        })
 
-    # Print the retrieved source documents
-    print("\n=== Retrieved Documents ===")
-    if sources:
-        for i, source in enumerate(sources, start=1):
-            print(f"\n--- Source Document {i} ---\n{source}")
-    else:
-        print("No source documents were retrieved.")
-
-    return answer, sources
-
+    return {
+    "answer": answer,
+    "sources": sources
+}

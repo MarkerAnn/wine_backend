@@ -1,5 +1,6 @@
 from typing import List, TypedDict
 import numpy as np
+from app.services.rag.vectorstore import chroma_client
 from numpy.typing import NDArray
 from sqlalchemy.orm import Session
 from sentence_transformers import SentenceTransformer
@@ -81,6 +82,7 @@ def process_and_store_embeddings(session: Session) -> None:
             "document": review["description"],
             "embedding": embedding.tolist(),  # Chroma expects list[float]
             "metadata": {
+                "id": str(review["id"]),
                 "title": review["title"],
                 "country": review["country"],
                 "variety": review["variety"],
