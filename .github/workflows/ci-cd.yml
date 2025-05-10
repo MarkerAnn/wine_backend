@@ -59,5 +59,11 @@ jobs:
             docker rm wt2-api || true
 
             docker build -t wt2-api .
-            docker run -d --name wt2-api -p 8000:5000 --restart unless-stopped --env-file .env wt2-api
+            docker run -d --name wt2-api \
+              -p 8000:5000 \
+              --restart unless-stopped \
+              --env-file .env \
+              -v /var/lib/wt2-chroma:/app/chroma_db \
+              wt2-api
+
           EOF
