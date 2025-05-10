@@ -1,6 +1,5 @@
 from typing import List, TypedDict
 import numpy as np
-from app.services.rag.vectorstore import chroma_client
 from numpy.typing import NDArray
 from sqlalchemy.orm import Session
 from sentence_transformers import SentenceTransformer
