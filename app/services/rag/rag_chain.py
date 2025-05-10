@@ -1,5 +1,6 @@
 from typing import List, Dict, Any, Tuple
 from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.retrieval_qa.base import RetrievalQA 
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -16,7 +17,6 @@ vectorstore = Chroma(
     persist_directory=VECTORSTORE_DIR,
 )
 
-# search_kwargs={"k": x} means we want to retrieve the top x most relevant documents
 retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
 
 def search_wines(query: str) -> List[SearchResult]:
@@ -45,12 +45,28 @@ def answer_with_rag(query: str) -> Tuple[str, List[str]]:
     """
     Use RAG to answer a query, strictly using only the Chroma data.
     """
-    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+    llm = ChatOpenAI(model="gpt-4-turbo", temperature=0)
+
+    prompt = ChatPromptTemplate.from_template(
+        """
+        You are a wine expert. Answer the user's question based only on the provided wine reviews.
+
+        **First, provide a recommendation and motivation in your own words.**
+
+        **Then, list the descriptions of the most relevant wines retrieved from the database, formatted as follows:**
+
+        Recommended Wine Descriptions:
+        {context}
+
+        User Question: {question}
+        """
+    )
 
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
         retriever=retriever,
         return_source_documents=True,
+        chain_type_kwargs={"prompt": prompt},
     )
 
     result = qa_chain.invoke({"query": query})
@@ -71,3 +87,4 @@ def answer_with_rag(query: str) -> Tuple[str, List[str]]:
         print("No source documents were retrieved.")
 
     return answer, sources
+
