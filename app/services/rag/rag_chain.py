@@ -1,8 +1,12 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
+from langchain_openai import ChatOpenAI
+from langchain.chains.retrieval_qa.base import RetrievalQA 
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from app.core.config import VECTORSTORE_DIR, EMBEDDING_MODEL_NAME
 from app.schemas.search_rag import SearchResult
+
+
 
 embedding_function = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
 
@@ -12,6 +16,7 @@ vectorstore = Chroma(
     persist_directory=VECTORSTORE_DIR,
 )
 
+# search_kwargs={"k": x} means we want to retrieve the top x most relevant documents
 retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
 
 def search_wines(query: str) -> List[SearchResult]:
@@ -35,3 +40,34 @@ def search_wines(query: str) -> List[SearchResult]:
             )
         )
     return results
+
+def answer_with_rag(query: str) -> Tuple[str, List[str]]:
+    """
+    Use RAG to answer a query, strictly using only the Chroma data.
+    """
+    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=retriever,
+        return_source_documents=True,
+    )
+
+    result = qa_chain.invoke({"query": query})
+
+    answer = result["result"]
+    sources = [doc.page_content for doc in result.get("source_documents", [])]
+
+    # Print the generated answer
+    print("\n=== Generated Answer ===")
+    print(answer)
+
+    # Print the retrieved source documents
+    print("\n=== Retrieved Documents ===")
+    if sources:
+        for i, source in enumerate(sources, start=1):
+            print(f"\n--- Source Document {i} ---\n{source}")
+    else:
+        print("No source documents were retrieved.")
+
+    return answer, sources
