@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 # Import routers – prefix and tags are now managed in the router files
-from app.api.endpoints import wines, bucket_wines, country_stats, price_rating
+from app.api.endpoints import wines, bucket_wines, country_stats, price_rating, search_rag
 
 # Create FastAPI app instance
 app = FastAPI(
@@ -52,6 +52,7 @@ app.include_router(wines.router)
 app.include_router(bucket_wines.router)
 app.include_router(country_stats.router)
 app.include_router(price_rating.router)
+app.include_router(search_rag.router)
 
 
 # Optional: root endpoint for checking server status
