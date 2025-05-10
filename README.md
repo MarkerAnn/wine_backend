@@ -3,8 +3,12 @@
 
 # 🍷 Wine API – FastAPI backend for interactive wine-data exploration
 
-A production-ready FastAPI service that powers the *WT2 – Wine Explorer* web app.  
-It loads 130 k Wine Enthusiast reviews, exposes rich REST endpoints, and adds a **Retrieval-Augmented Generation (RAG)** layer for natural-language Q&A.
+A production-ready FastAPI service that powers the WT2 – Wine Explorer web app.
+It loads 130k Wine Enthusiast reviews, exposes rich REST endpoints, and adds a Retrieval-Augmented Generation (RAG) layer for natural-language Q&A.
+
+🚀 Live demo:
+API root: https://angelicamarker.online/wt2
+Docs: https://angelicamarker.online/wt2/docs#/
 
 ---
 
@@ -44,10 +48,45 @@ It loads 130 k Wine Enthusiast reviews, exposes rich REST endpoints, and adds a 
 * **Python 3.11**, **FastAPI 0.115**
 * **PostgreSQL 15** (primary store)  
 * **SQLAlchemy 2** + Pydantic v2 for type-safe data access
-* **Chroma DB** as local vector store  
+* **Chroma DB** as local vector store (volumized in production)
 * **LangChain + OpenAI GPT-4-Turbo** for RAG search
 * **Docker / GitHub Actions** for repeatable builds & deploys
-* **(Planned)** Redis cache, Pytest coverage
+
+---
+
+## 🗄️ Chroma Setup (Production)
+
+To persist ChromaDB **across container rebuilds**, the Docker container mounts:
+
+```bash
+-v /var/lib/wt2-chroma:/app/chroma_db
+```
+
+This ensures:
+
+- 🔒 **Durability:** embeddings stay intact even after container restarts.
+    
+- 📦 **One-time setup:** you only need to build embeddings ONCE on the VPS.
+    
+
+### First-time: embed wine reviews on VPS
+
+After deploying, SSH into your VPS and run:
+
+```bash
+docker exec -it wt2-api python embed_wines.py
+```
+
+This script:
+
+- Loads all 130k wine reviews from PostgreSQL
+    
+- Embeds them via `SentenceTransformers`
+    
+- Populates ChromaDB at `/var/lib/wt2-chroma` (on VPS disk)
+    
+
+✅ Future deploys **reuse the existing Chroma data automatically.**
 
 ---
 
@@ -113,7 +152,7 @@ See the **OpenAPI /docs** route for the full contract – FastAPI autogenerates 
 
 ### 1. Clone & Configure
 ```bash
-git clone https://github.com/<you>/wine_backend.git
+git clone https://github.com/MarkerAnn/wine_backend.git
 cd wine_backend
 cp .env.example .env   # then fill in secrets
 ````
@@ -157,6 +196,35 @@ uvicorn app.main:app --reload --port 8001
 
 ---
 
+
+## 🔄 CI/CD Flow (GitHub Actions)
+
+- **On push to `main`:**
+    
+    - Lints code (Pylint)
+        
+    - SSH into VPS
+        
+    - Pulls latest code
+        
+    - Stops old container
+        
+    - Rebuilds & starts Docker with volume mount for Chroma:
+        
+
+````bash
+docker run -d --name wt2-api \
+    -p 8000:5000 \
+    --restart unless-stopped \
+    --env-file .env \
+    -v /var/lib/wt2-chroma:/app/chroma_db \
+    wt2-api
+````
+
+✅ Embeddings stay safe across deployments.
+
+---
+
 ## ➡️  Roadmap / Future Improvements
 
 1. **Redis cache** – memoise hot endpoints (e.g., country stats) to cut DB latency.
@@ -166,11 +234,6 @@ uvicorn app.main:app --reload --port 8001
 
 ---
 
-## 🤝  Contributing
-
-Contributions are welcome! Open an issue or create a PR; please follow the existing Black + isort formatting and write descriptive commit messages.
-
----
 
 ## 📄  License
 
