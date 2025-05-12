@@ -141,8 +141,29 @@ def get_wine_details_by_country(
     cursor: Optional[str] = None,
 ) -> WineListByCountryResponse:
     """
-    Fetch paginated wine details for a specific country.
+    Fetch paginated wine details for a specific country,
+    with special handling for problematic country names.
     """
+    # Special case handling for known problematic countries
+    search_countries = []
+    
+    # United Kingdom special case
+    if country == "United Kingdom":
+        search_countries = ["England", "UK", "United Kingdom"]
+    
+    # United States special case
+    elif country == "United States of America":
+        search_countries = ["US", "USA", "United States", "United States of America"]
+    
+    # Republic of Serbia special case
+    elif country == "Republic of Serbia":
+        search_countries = ["Serbia", "Republic of Serbia"]
+    
+    # Default case: try the exact country name
+    else:
+        search_countries = [country]
+    
+    # Query for wines from any of the search countries
     query = db.query(
         WineModel.id,
         WineModel.title,
@@ -151,7 +172,7 @@ def get_wine_details_by_country(
         WineModel.country,
         WineModel.variety,
         WineModel.winery,
-    ).filter(WineModel.country == country)
+    ).filter(WineModel.country.in_(search_countries))
 
     if cursor:
         try:

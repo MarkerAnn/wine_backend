@@ -3,13 +3,13 @@ import os
 import sys
 from typing import Dict, Set, Tuple
 import difflib  # For more sophisticated string matching
-
-# Add project root to path to allow importing from app
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-
 from app.db.database import get_db
 from app.models.wine import Wine
 from app.utils.country_mapping import DB_TO_GEOJSON
+
+
+# Add project root to path to allow importing from app
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 
 def analyze_country_mappings(geojson_path: str) -> None:
