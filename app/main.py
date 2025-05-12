@@ -47,7 +47,11 @@ async def general_exception_handler(
 # Enable CORS so frontend (e.g., Vite on port 5173) can access the backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Adjust for your frontend origin
+        allow_origins=[
+        "http://localhost:5173",
+        "https://angelicamarker.online",
+        "https://angelicamarker.online/wt2-frontend",
+    ],  # Adjust for your frontend origin
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
